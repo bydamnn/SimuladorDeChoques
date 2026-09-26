@@ -41,7 +41,6 @@ body {
 .wrap {
     max-width: 1320px;
     margin: 0 auto;
-    flex-wrap: wrap;
 }
 
 .badge {
@@ -81,6 +80,7 @@ h1 {
 .sec-main{
     display: flex;
     gap: 20px;
+    flex-wrap: wrap;
 }
 
 .panel {
