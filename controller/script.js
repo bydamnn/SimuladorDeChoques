@@ -65,10 +65,94 @@ ground.rotation.x = -Math.PI / 2; ground.position.y = -0.005; ground.receiveShad
 const grid = new THREE.GridHelper(20, 20, 0x2a3a5c, 0x18223a); scene.add(grid);
 
 function radiusM(m) { return 0.16 * Math.cbrt(m) + 0.18; }
-const mat1 = new THREE.MeshStandardMaterial({ color: 0x2196f0, metalness: 0.35, roughness: 0.35, emissive: 0x0a2a4a, emissiveIntensity: 0.25 });
-const mat2 = new THREE.MeshStandardMaterial({ color: 0xec4899, metalness: 0.35, roughness: 0.35, emissive: 0x4a0a2a, emissiveIntensity: 0.25 });
-let sphere1 = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), mat1); sphere1.castShadow = true; scene.add(sphere1);
-let sphere2 = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), mat2); sphere2.castShadow = true; scene.add(sphere2);
+
+// ---------- MODELOS 3D REALES (construidos con geometría, sin archivos externos) ----------
+function texBilliard() {
+    const c = document.createElement('canvas'); c.width = c.height = 256; const cx = c.getContext('2d');
+    cx.fillStyle = '#f7f2e7'; cx.fillRect(0, 0, 256, 256);
+    cx.beginPath(); cx.arc(128, 88, 46, 0, Math.PI * 2); cx.fillStyle = '#f2c94c'; cx.fill();
+    cx.lineWidth = 4; cx.strokeStyle = '#2b2b2b'; cx.stroke();
+    cx.fillStyle = '#1a1a1a'; cx.font = 'bold 42px Arial'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('9', 128, 92);
+    return new THREE.CanvasTexture(c);
+}
+function texSoccer() {
+    const c = document.createElement('canvas'); c.width = c.height = 256; const cx = c.getContext('2d');
+    cx.fillStyle = '#f2f2f2'; cx.fillRect(0, 0, 256, 256); cx.fillStyle = '#141414';
+    function pent(x0, y0, r, rot) {
+        cx.beginPath();
+        for (let i = 0; i < 5; i++) { const a = rot + i * (Math.PI * 2 / 5) - Math.PI / 2; const x = x0 + r * Math.cos(a), y = y0 + r * Math.sin(a); i === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y); }
+        cx.closePath(); cx.fill();
+    }
+    pent(128, 128, 42, 0); pent(40, 60, 26, 0.6); pent(210, 55, 26, 1.1); pent(30, 200, 26, 2.1); pent(220, 205, 26, 2.8); pent(128, 240, 24, 0.3);
+    return new THREE.CanvasTexture(c);
+}
+function texConcrete() {
+    const c = document.createElement('canvas'); c.width = c.height = 256; const cx = c.getContext('2d');
+    cx.fillStyle = '#9aa0a6'; cx.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 700; i++) { const g = Math.random() > 0.5 ? 20 : 255; cx.fillStyle = `rgba(${g},${g},${g},${(Math.random() * 0.08).toFixed(2)})`; cx.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); }
+    cx.strokeStyle = 'rgba(0,0,0,.25)'; cx.lineWidth = 3; cx.strokeRect(4, 4, 248, 248);
+    return new THREE.CanvasTexture(c);
+}
+function buildBallGroup(color, texture, metal, rough) {
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), new THREE.MeshStandardMaterial({ color, map: texture || null, metalness: metal, roughness: rough }));
+    mesh.castShadow = true; const g = new THREE.Group(); g.add(mesh); return g;
+}
+function buildBloque() {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2, 1.4), new THREE.MeshStandardMaterial({ map: texConcrete(), roughness: 0.9, metalness: 0.05 }));
+    mesh.castShadow = true; const g = new THREE.Group(); g.add(mesh); return g;
+}
+function buildBolos() {
+    const g = buildBallGroup(0x111111, null, 0.2, 0.15);
+    const holeMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.6 });
+    [[-0.25, 0.55, 0.55], [0.25, 0.55, 0.55], [0, 0.65, 0.35]].forEach(p => {
+        const h = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.12, 10), holeMat);
+        h.position.set(p[0], p[1], p[2]); h.rotation.x = Math.PI / 2.3; g.add(h);
+    });
+    return g;
+}
+function buildCarro(color) {
+    const g = new THREE.Group();
+    const bodyMat = new THREE.MeshStandardMaterial({ color, metalness: 0.5, roughness: 0.35 });
+    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x0d0d0d, roughness: 0.7 });
+    const body = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.5, 0.95), bodyMat); body.position.y = -0.35; body.castShadow = true; g.add(body);
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.42, 0.8), new THREE.MeshStandardMaterial({ color: 0x1c3557, metalness: 0.6, roughness: 0.25 }));
+    cabin.position.set(-0.05, 0.06, 0); cabin.castShadow = true; g.add(cabin);
+    const wheelGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 16);
+    [[-0.55, -0.65, 0.45], [0.55, -0.65, 0.45], [-0.55, -0.65, -0.45], [0.55, -0.65, -0.45]].forEach(p => {
+        const wh = new THREE.Mesh(wheelGeo, wheelMat); wh.rotation.x = Math.PI / 2; wh.position.set(p[0], p[1], p[2]); wh.castShadow = true; g.add(wh);
+    });
+    return g;
+}
+function buildBici(color) {
+    const g = new THREE.Group();
+    const wheelGeo = new THREE.TorusGeometry(0.6, 0.06, 8, 24);
+    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.4, roughness: 0.5 });
+    [-0.55, 0.55].forEach(x => { const w = new THREE.Mesh(wheelGeo, wheelMat); w.position.set(x, -0.4, 0); w.castShadow = true; g.add(w); });
+    const frameMat = new THREE.MeshStandardMaterial({ color, metalness: 0.5, roughness: 0.4 });
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.07, 0.07), frameMat); frame.position.set(0, 0.05, 0); frame.castShadow = true; g.add(frame);
+    const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.55, 8), frameMat); seat.position.set(-0.2, 0.32, 0); seat.castShadow = true; g.add(seat);
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.55, 8), frameMat); handle.position.set(0.5, 0.32, 0); handle.castShadow = true; g.add(handle);
+    return g;
+}
+const shapeBuilders = {
+    billar: (color) => buildBallGroup(0xffffff, texBilliard(), 0.15, 0.15),
+    futbol: (color) => buildBallGroup(0xffffff, texSoccer(), 0.05, 0.55),
+    carro: buildCarro, bloque: () => buildBloque(), bolos: () => buildBolos(), bici: buildBici,
+    custom: (color) => buildBallGroup(color, null, 0.3, 0.4)
+};
+function makeModel(type, color) { return (shapeBuilders[type] || shapeBuilders.custom)(color); }
+function disposeModel(m) { m.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
+
+let model1 = makeModel('bloque', 0x2196f0), model2 = makeModel('bloque', 0xec4899);
+scene.add(model1); scene.add(model2);
+function setBodyShape(idx, type) {
+    const color = idx === 1 ? 0x2196f0 : 0xec4899;
+    const old = idx === 1 ? model1 : model2;
+    scene.remove(old); disposeModel(old);
+    const fresh = makeModel(type, color);
+    if (idx === 1) model1 = fresh; else model2 = fresh;
+    scene.add(fresh);
+}
 
 const arrow1 = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 1, 0x60a5fa, 0.3, 0.18);
 const arrow2 = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 1, 0xf472b6, 0.3, 0.18);
@@ -127,7 +211,6 @@ function setup() {
     post2 = ((m2 - e * m1) * vel2 + (1 + e) * m1 * vel1) / (m1 + m2);
     collided = false; t = 0; squash = 0; playing = false;
     particles.forEach(p => scene.remove(p.mesh)); particles = [];
-    sphere1.scale.set(r1m, r1m, r1m); sphere2.scale.set(r2m, r2m, r2m);
     timeLbl.textContent = 't = 0.00 s';
     computeAndShowStats();
     updateMeshes();
@@ -168,11 +251,11 @@ function updateParticles(dt) {
 }
 
 function updateMeshes() {
-    sphere1.position.set(x1m, r1m, 0);
-    sphere2.position.set(x2m, r2m, 0);
+    model1.position.set(x1m, r1m, 0);
+    model2.position.set(x2m, r2m, 0);
     const sqx = 1 + squash * 0.35, sqy = 1 - squash * 0.3;
-    sphere1.scale.set(r1m * sqx, r1m * sqy, r1m * sqx);
-    sphere2.scale.set(r2m * sqx, r2m * sqy, r2m * sqx);
+    model1.scale.set(r1m * sqx, r1m * sqy, r1m * sqx);
+    model2.scale.set(r2m * sqx, r2m * sqy, r2m * sqx);
     const cv1 = collided ? post1 : vel1, cv2 = collided ? post2 : vel2;
     arrow1.position.set(x1m, r1m * 2 + 0.25, 0);
     arrow2.position.set(x2m, r2m * 2 + 0.25, 0);
@@ -234,3 +317,11 @@ function wirePreset(presetId, sliderId) {
 }
 wirePreset('m1preset', 'm1');
 wirePreset('m2preset', 'm2');
+
+const VALUE_SHAPE = { '0.17': 'billar', '0.45': 'futbol', '1.2': 'carro', '2': 'bloque', '3': 'bloque', '6.8': 'bolos', '15': 'bici' };
+function shapeFromValue(v) { return VALUE_SHAPE[v] || 'custom'; }
+const m1p = document.getElementById('m1preset'), m2p = document.getElementById('m2preset');
+m1p.addEventListener('change', () => setBodyShape(1, shapeFromValue(m1p.value)));
+m2p.addEventListener('change', () => setBodyShape(2, shapeFromValue(m2p.value)));
+setBodyShape(1, shapeFromValue(m1p.value));
+setBodyShape(2, shapeFromValue(m2p.value));

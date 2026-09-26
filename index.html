@@ -1,98 +1,117 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Simulador de Choques y Conservación de Energía</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/style_principal.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Simulador de Choques y Conservación de Energía</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles/style_principal.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
+
 <body>
-<div class="wrap">
-  <div class="badge-wrap"><span class="badge">Física Mecánica · Proyecto de Aula</span></div>
-  <h1>Simulador de Choques y Conservación de Energía</h1>
-  <p class="sub">Universidad de Santander · Facultad de Ingeniería · Visualización 3D</p>
+    <div class="wrap">
+        <div class="badge-wrap"><span class="badge">Física Mecánica · Proyecto de Aula</span></div>
+        <h1>Simulador de Choques y Conservación de Energía</h1>
+        <p class="sub">Universidad de Santander · Facultad de Ingeniería · Visualización 3D</p>
 
-  <div class="panel">
-    <div class="panel-title"><span class="dot"></span>Configuración de los cuerpos</div>
-    <div class="obj-grid">
-      <div class="obj-card p1">
-        <div class="obj-head"><span class="name">Cuerpo 1</span><span class="mass-tag" id="m1tag">2.00 kg</span></div>
-        <select class="preset" id="m1preset">
-          <option value="0.17">🎱 Bola de billar (0.17 kg)</option>
-          <option value="0.45">⚽ Balón de fútbol (0.45 kg)</option>
-          <option value="1.2">🚗 Carro de juguete (1.2 kg)</option>
-          <option value="2" selected>🧱 Bloque de concreto (2.0 kg)</option>
-          <option value="6.8">🎳 Bola de bolos (6.8 kg)</option>
-          <option value="15">🚲 Bicicleta (15 kg)</option>
-          <option value="custom">✏️ Personalizado…</option>
-        </select>
-        <div class="finetune"><input type="range" id="m1" min="0.15" max="25" step="0.05" value="2"><span class="num" id="m1v">2.0</span></div>
-      </div>
-      <div class="obj-card p2">
-        <div class="obj-head"><span class="name">Cuerpo 2</span><span class="mass-tag" id="m2tag">3.00 kg</span></div>
-        <select class="preset" id="m2preset">
-          <option value="0.17">🎱 Bola de billar (0.17 kg)</option>
-          <option value="0.45">⚽ Balón de fútbol (0.45 kg)</option>
-          <option value="1.2">🚗 Carro de juguete (1.2 kg)</option>
-          <option value="3" selected>🧱 Bloque de concreto (3.0 kg)</option>
-          <option value="6.8">🎳 Bola de bolos (6.8 kg)</option>
-          <option value="15">🚲 Bicicleta (15 kg)</option>
-          <option value="custom">✏️ Personalizado…</option>
-        </select>
-        <div class="finetune"><input type="range" id="m2" min="0.15" max="25" step="0.05" value="3"><span class="num" id="m2v">3.0</span></div>
-      </div>
-    </div>
-    <div class="vel-grid">
-      <div class="vel-card"><div class="vel-head">Velocidad inicial v₁ <span class="val" id="v1v">4.0 m/s</span></div><input type="range" id="v1" min="-10" max="10" step="0.1" value="4"></div>
-      <div class="vel-card"><div class="vel-head">Velocidad inicial v₂ <span class="val" id="v2v">-2.0 m/s</span></div><input type="range" id="v2" min="-10" max="10" step="0.1" value="-2"></div>
-    </div>
-    <div class="tiporow">
-      <label>Tipo de choque (coeficiente de restitución e)</label>
-      <select id="tipo">
-        <option value="1">Elástico (e = 1) — sin pérdida de energía</option>
-        <option value="0.5">Parcialmente inelástico (e = 0.5)</option>
-        <option value="0" selected>Perfectamente inelástico (e = 0) — quedan unidos</option>
-      </select>
-    </div>
-  </div>
+        <div class="sec-main">
 
-  <div class="panel">
-    <div class="panel-title"><span class="dot"></span>Simulación 3D</div>
-    <div class="viewbtns">
-      <button class="viewbtn" data-p="frontal">Frontal</button>
-      <button class="viewbtn" data-p="lateral">Lateral</button>
-      <button class="viewbtn" data-p="superior">Superior</button>
-      <button class="viewbtn active" data-p="isometrica">Isométrica</button>
-    </div>
-    <div class="scene-wrap" id="sceneWrap">
-      <div class="scene-hint">🖱️ Arrastra para rotar · rueda / pellizca para hacer zoom</div>
-      <div class="scene-time" id="timeLbl">t = 0.00 s</div>
-    </div>
-    <div class="btnrow">
-      <button id="btnRun">▶ Simular choque</button>
-      <button id="btnReset">⟲ Reiniciar</button>
-      <button id="btnSound">🔊 Sonido: ON</button>
-    </div>
-    <p class="note">Superficie ideal sin fricción. Cada cuadro de la rejilla equivale a 1 metro. Las chispas al impacto representan la energía disipada como calor/deformación/sonido.</p>
-  </div>
+            <div class="panel">
+                <div class="panel-title"><span class="dot"></span>Simulación 3D</div>
+                <div class="viewbtns">
+                    <button class="viewbtn" data-p="frontal">Frontal</button>
+                    <button class="viewbtn" data-p="lateral">Lateral</button>
+                    <button class="viewbtn" data-p="superior">Superior</button>
+                    <button class="viewbtn active" data-p="isometrica">Isométrica</button>
+                </div>
+                <div class="scene-wrap" id="sceneWrap">
+                    <div class="scene-hint">🖱️ Arrastra para rotar · rueda / pellizca para hacer zoom</div>
+                    <div class="scene-time" id="timeLbl">t = 0.00 s</div>
+                </div>
+                <div class="btnrow">
+                    <button id="btnRun">▶ Simular choque</button>
+                    <button id="btnReset">⟲ Reiniciar</button>
+                    <button id="btnSound">🔊 Sonido: ON</button>
+                </div>
+                <p class="note">Superficie ideal sin fricción. Cada cuadro de la rejilla equivale a 1 metro. Las chispas
+                    al impacto representan la energía disipada como calor/deformación/sonido.</p>
+            </div>
 
-  <div class="panel">
-    <div class="panel-title"><span class="dot"></span>Resultados</div>
-    <div class="results" id="results"></div>
-    <div class="formula">
-      v₁' = [(m₁−e·m₂)v₁ + (1+e)m₂v₂] / (m₁+m₂) &nbsp;|&nbsp;
-      v₂' = [(m₂−e·m₁)v₂ + (1+e)m₁v₁] / (m₁+m₂) &nbsp;|&nbsp;
-      Ec = ½mv² &nbsp;|&nbsp; p = mv
-    </div>
-  </div>
-  <footer>Universidad de Santander · Facultad de Ingeniería</footer>
-</div>
+            <div class="panel">
+                <div class="panel-title"><span class="dot"></span>Configuración de los cuerpos</div>
+                <div class="obj-grid">
+                    <div class="obj-card p1">
+                        <div class="obj-head"><span class="name">Cuerpo 1</span><span class="mass-tag" id="m1tag">2.00
+                                kg</span></div>
+                        <select class="preset" id="m1preset">
+                            <option value="0.17">🎱 Bola de billar (0.17 kg)</option>
+                            <option value="0.45">⚽ Balón de fútbol (0.45 kg)</option>
+                            <option value="1.2">🚗 Carro de juguete (1.2 kg)</option>
+                            <option value="2" selected>🧱 Bloque de concreto (2.0 kg)</option>
+                            <option value="6.8">🎳 Bola de bolos (6.8 kg)</option>
+                            <option value="15">🚲 Bicicleta (15 kg)</option>
+                            <option value="custom">✏️ Personalizado…</option>
+                        </select>
+                        <div class="finetune"><input type="range" id="m1" min="0.15" max="25" step="0.05"
+                                value="2"><span class="num" id="m1v">2.0</span></div>
+                    </div>
+                    <div class="obj-card p2">
+                        <div class="obj-head"><span class="name">Cuerpo 2</span><span class="mass-tag" id="m2tag">3.00
+                                kg</span></div>
+                        <select class="preset" id="m2preset">
+                            <option value="0.17">🎱 Bola de billar (0.17 kg)</option>
+                            <option value="0.45">⚽ Balón de fútbol (0.45 kg)</option>
+                            <option value="1.2">🚗 Carro de juguete (1.2 kg)</option>
+                            <option value="3" selected>🧱 Bloque de concreto (3.0 kg)</option>
+                            <option value="6.8">🎳 Bola de bolos (6.8 kg)</option>
+                            <option value="15">🚲 Bicicleta (15 kg)</option>
+                            <option value="custom">✏️ Personalizado…</option>
+                        </select>
+                        <div class="finetune"><input type="range" id="m2" min="0.15" max="25" step="0.05"
+                                value="3"><span class="num" id="m2v">3.0</span></div>
+                    </div>
+                </div>
+                <div class="vel-grid">
+                    <div class="vel-card">
+                        <div class="vel-head">Velocidad inicial v₁ <span class="val" id="v1v">4.0 m/s</span></div><input
+                            type="range" id="v1" min="-10" max="10" step="0.1" value="4">
+                    </div>
+                    <div class="vel-card">
+                        <div class="vel-head">Velocidad inicial v₂ <span class="val" id="v2v">-2.0 m/s</span></div>
+                        <input type="range" id="v2" min="-10" max="10" step="0.1" value="-2">
+                    </div>
+                </div>
+                <div class="tiporow">
+                    <label>Tipo de choque (coeficiente de restitución e)</label>
+                    <select id="tipo">
+                        <option value="1">Elástico (e = 1) — sin pérdida de energía</option>
+                        <option value="0.5">Parcialmente inelástico (e = 0.5)</option>
+                        <option value="0" selected>Perfectamente inelástico (e = 0) — quedan unidos</option>
+                    </select>
+                </div>
+            </div>
 
-<script src="controller/script.js"></script>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span class="dot"></span>Resultados</div>
+            <div class="results" id="results"></div>
+            <div class="formula">
+                v₁' = [(m₁−e·m₂)v₁ + (1+e)m₂v₂] / (m₁+m₂) &nbsp;|&nbsp;
+                v₂' = [(m₂−e·m₁)v₂ + (1+e)m₁v₁] / (m₁+m₂) &nbsp;|&nbsp;
+                Ec = ½mv² &nbsp;|&nbsp; p = mv
+            </div>
+        </div>
+        <footer>Universidad de Santander · Facultad de Ingeniería</footer>
+    </div>
+
+    <script src="controller/script.js"></script>
 </body>
+
 </html>

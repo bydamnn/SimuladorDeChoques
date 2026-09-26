@@ -39,8 +39,9 @@ body {
 }
 
 .wrap {
-    max-width: 1020px;
+    max-width: 1320px;
     margin: 0 auto;
+    flex-wrap: wrap;
 }
 
 .badge {
@@ -75,6 +76,11 @@ h1 {
     color: var(--muted);
     font-size: .92rem;
     margin-bottom: 26px;
+}
+
+.sec-main{
+    display: flex;
+    gap: 20px;
 }
 
 .panel {
