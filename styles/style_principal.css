@@ -39,7 +39,7 @@ body {
 }
 
 .wrap {
-    max-width: 1320px;
+    max-width: 1420px;
     margin: 0 auto;
 }
 
@@ -80,7 +80,7 @@ h1 {
 .sec-main{
     display: flex;
     gap: 20px;
-    flex-wrap: wrap;
+    width: 100%;
 }
 
 .panel {
@@ -120,6 +120,17 @@ h1 {
 @media (max-width:680px) {
     .obj-grid {
         grid-template-columns: 1fr;
+    }
+
+    .sec-main {
+        flex-direction: column;
+    }
+}
+
+@media (max-width:880px) {
+
+    .sec-main {
+        flex-direction: column;
     }
 }
 
@@ -220,6 +231,10 @@ select.preset:focus {
 @media (max-width:680px) {
     .vel-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .sec-main {
+        flex-direction: column;
     }
 }
 
