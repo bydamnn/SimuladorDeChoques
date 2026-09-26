@@ -8,13 +8,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/style_principal.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
 </head>
 <body>
-
 <div class="wrap">
   <div class="badge-wrap"><span class="badge">Física Mecánica · Proyecto de Aula</span></div>
   <h1>Simulador de Choques y Conservación de Energía</h1>
-  <p class="sub">Universidad de Santander · Facultad de Ingeniería</p>
+  <p class="sub">Universidad de Santander · Facultad de Ingeniería · Visualización 3D</p>
 
   <div class="panel">
     <div class="panel-title"><span class="dot"></span>Configuración de los cuerpos</div>
@@ -30,16 +31,10 @@
           <option value="15">🚲 Bicicleta (15 kg)</option>
           <option value="custom">✏️ Personalizado…</option>
         </select>
-
-        <div class="finetune">
-          <input type="range" id="m1" min="0.15" max="25" step="0.05" value="2">
-          <span class="num" id="m1v">2.0</span>
-        </div>
+        <div class="finetune"><input type="range" id="m1" min="0.15" max="25" step="0.05" value="2"><span class="num" id="m1v">2.0</span></div>
       </div>
-
       <div class="obj-card p2">
         <div class="obj-head"><span class="name">Cuerpo 2</span><span class="mass-tag" id="m2tag">3.00 kg</span></div>
-
         <select class="preset" id="m2preset">
           <option value="0.17">🎱 Bola de billar (0.17 kg)</option>
           <option value="0.45">⚽ Balón de fútbol (0.45 kg)</option>
@@ -49,27 +44,13 @@
           <option value="15">🚲 Bicicleta (15 kg)</option>
           <option value="custom">✏️ Personalizado…</option>
         </select>
-
-        <div class="finetune">
-          <input type="range" id="m2" min="0.15" max="25" step="0.05" value="3">
-          <span class="num" id="m2v">3.0</span>
-        </div>
+        <div class="finetune"><input type="range" id="m2" min="0.15" max="25" step="0.05" value="3"><span class="num" id="m2v">3.0</span></div>
       </div>
-
     </div>
-
     <div class="vel-grid">
-      <div class="vel-card">
-        <div class="vel-head">Velocidad inicial v₁ <span class="val" id="v1v">4.0 m/s</span></div>
-        <input type="range" id="v1" min="-10" max="10" step="0.1" value="4">
-      </div>
-
-      <div class="vel-card">
-        <div class="vel-head">Velocidad inicial v₂ <span class="val" id="v2v">-2.0 m/s</span></div>
-        <input type="range" id="v2" min="-10" max="10" step="0.1" value="-2">
-      </div>
+      <div class="vel-card"><div class="vel-head">Velocidad inicial v₁ <span class="val" id="v1v">4.0 m/s</span></div><input type="range" id="v1" min="-10" max="10" step="0.1" value="4"></div>
+      <div class="vel-card"><div class="vel-head">Velocidad inicial v₂ <span class="val" id="v2v">-2.0 m/s</span></div><input type="range" id="v2" min="-10" max="10" step="0.1" value="-2"></div>
     </div>
-
     <div class="tiporow">
       <label>Tipo de choque (coeficiente de restitución e)</label>
       <select id="tipo">
@@ -81,15 +62,23 @@
   </div>
 
   <div class="panel">
-    <div class="panel-title"><span class="dot"></span>Simulación</div>
-    <canvas id="cv" width="900" height="260"></canvas>
-    <div class="track-labels"><span id="scaleLbl">Escala: 1 m</span><span id="timeLbl">t = 0.00 s</span></div>
+    <div class="panel-title"><span class="dot"></span>Simulación 3D</div>
+    <div class="viewbtns">
+      <button class="viewbtn" data-p="frontal">Frontal</button>
+      <button class="viewbtn" data-p="lateral">Lateral</button>
+      <button class="viewbtn" data-p="superior">Superior</button>
+      <button class="viewbtn active" data-p="isometrica">Isométrica</button>
+    </div>
+    <div class="scene-wrap" id="sceneWrap">
+      <div class="scene-hint">🖱️ Arrastra para rotar · rueda / pellizca para hacer zoom</div>
+      <div class="scene-time" id="timeLbl">t = 0.00 s</div>
+    </div>
     <div class="btnrow">
       <button id="btnRun">▶ Simular choque</button>
       <button id="btnReset">⟲ Reiniciar</button>
       <button id="btnSound">🔊 Sonido: ON</button>
     </div>
-    <p class="note">Superficie ideal sin fricción (así la pérdida de energía visible corresponde solo a la colisión, no a rozamiento). Las chispas al impacto representan visualmente la energía disipada como calor/deformación/sonido.</p>
+    <p class="note">Superficie ideal sin fricción. Cada cuadro de la rejilla equivale a 1 metro. Las chispas al impacto representan la energía disipada como calor/deformación/sonido.</p>
   </div>
 
   <div class="panel">
@@ -104,208 +93,6 @@
   <footer>Universidad de Santander · Facultad de Ingeniería</footer>
 </div>
 
-<script>
-const $=id=>document.getElementById(id);
-const m1i=$('m1'),m2i=$('m2'),v1i=$('v1'),v2i=$('v2'),tipoSel=$('tipo');
-const m1v=$('m1v'),m2v=$('m2v'),v1v=$('v1v'),v2v=$('v2v');
-const canvas=$('cv'),ctx=canvas.getContext('2d');
-const results=$('results'),timeLbl=$('timeLbl'),scaleLbl=$('scaleLbl');
-const btnRun=$('btnRun'),btnReset=$('btnReset'),btnSound=$('btnSound');
-
-function syncLabels(){
-  m1v.textContent=parseFloat(m1i.value).toFixed(1);
-  m2v.textContent=parseFloat(m2i.value).toFixed(1);
-  v1v.textContent=parseFloat(v1i.value).toFixed(1)+' m/s';
-  v2v.textContent=parseFloat(v2i.value).toFixed(1)+' m/s';
-  $('m1tag').textContent=parseFloat(m1i.value).toFixed(2)+' kg';
-  $('m2tag').textContent=parseFloat(m2i.value).toFixed(2)+' kg';
-}
-[m1i,m2i,v1i,v2i].forEach(el=>el.addEventListener('input',()=>{syncLabels(); if(!animId) drawStatic();}));
-syncLabels();
-
-let soundOn=true;
-btnSound.addEventListener('click',()=>{soundOn=!soundOn;btnSound.textContent='🔊 Sonido: '+(soundOn?'ON':'OFF');});
-let actx=null;
-function playThud(intensity){
-  if(!soundOn) return;
-  try{
-    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
-    const o=actx.createOscillator(), g=actx.createGain();
-    o.type='sine'; o.frequency.setValueAtTime(120+intensity*40,actx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(40,actx.currentTime+0.15);
-    g.gain.setValueAtTime(Math.min(0.5,0.15+intensity*0.05),actx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+0.25);
-    o.connect(g); g.connect(actx.destination);
-    o.start(); o.stop(actx.currentTime+0.25);
-  }catch(e){}
-}
-
-const W=canvas.width,H=canvas.height,trackY=H*0.6;
-const TRACK_M=16, MARGIN=40, PXPM=(W-2*MARGIN)/TRACK_M;
-scaleLbl.textContent='Escala: '+PXPM.toFixed(0)+' px = 1 m';
-const toPx=m=>MARGIN+m*PXPM;
-function radiusM(m){ return 0.14*Math.cbrt(m)+0.12; }
-
-let animId=null, collided=false, t=0, squash1=0, squash2=0, particles=[], trail1=[], trail2=[];
-let x1m,x2m,r1m,r2m,vel1,vel2,post1,post2,m1,m2,e;
-
-function setup(){
-  m1=parseFloat(m1i.value); m2=parseFloat(m2i.value);
-  vel1=parseFloat(v1i.value); vel2=parseFloat(v2i.value);
-  e=parseFloat(tipoSel.value);
-  r1m=radiusM(m1); r2m=radiusM(m2);
-  x1m=r1m+0.3; x2m=TRACK_M-r2m-0.3;
-  post1=((m1-e*m2)*vel1 + (1+e)*m2*vel2)/(m1+m2);
-  post2=((m2-e*m1)*vel2 + (1+e)*m1*vel1)/(m1+m2);
-  collided=false; t=0; squash1=0; squash2=0; particles=[]; trail1=[]; trail2=[];
-  computeAndShowStats();
-}
-
-function ke(m,v){return 0.5*m*v*v;}
-function computeAndShowStats(){
-  const p_i=m1*vel1+m2*vel2, p_f=m1*post1+m2*post2;
-  const ke_i=ke(m1,vel1)+ke(m2,vel2), ke_f=ke(m1,post1)+ke(m2,post2);
-  const loss=ke_i-ke_f, lossPct=ke_i!==0?(loss/ke_i*100):0;
-  results.innerHTML=`
-    <div class="stat"><div class="k">v₁ antes / después</div><div class="v">${vel1.toFixed(2)} → ${post1.toFixed(2)} m/s</div></div>
-    <div class="stat"><div class="k">v₂ antes / después</div><div class="v">${vel2.toFixed(2)} → ${post2.toFixed(2)} m/s</div></div>
-    <div class="stat good"><div class="k">Momento p (antes / después)</div><div class="v">${p_i.toFixed(2)} / ${p_f.toFixed(2)} kg·m/s</div></div>
-    <div class="stat"><div class="k">Energía cinética antes</div><div class="v">${ke_i.toFixed(2)} J</div></div>
-    <div class="stat ${loss>0.001?'warn':'good'}"><div class="k">Energía cinética después</div><div class="v">${ke_f.toFixed(2)} J</div></div>
-    <div class="stat ${loss>0.001?'warn':'good'}"><div class="k">Energía perdida (choque)</div><div class="v">${loss.toFixed(2)} J (${lossPct.toFixed(1)}%)</div></div>
-  `;
-}
-
-function drawRuler(){
-  ctx.strokeStyle='#22314d'; ctx.fillStyle='#5b6b8c'; ctx.font='10px sans-serif'; ctx.textAlign='center';
-  for(let m=0;m<=TRACK_M;m++){
-    const x=toPx(m);
-    ctx.beginPath(); ctx.moveTo(x,trackY+30); ctx.lineTo(x,trackY+(m%2===0?38:34)); ctx.stroke();
-    if(m%2===0) ctx.fillText(m+'m',x,trackY+50);
-  }
-  ctx.strokeStyle='#334155'; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.moveTo(0,trackY+30); ctx.lineTo(W,trackY+30); ctx.stroke();
-}
-
-function drawArrow(xPx,y,v,color){
-  if(Math.abs(v)<0.05) return;
-  const len=Math.max(-70,Math.min(70,v*7));
-  ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.moveTo(xPx,y); ctx.lineTo(xPx+len,y); ctx.stroke();
-  const dir=len>=0?1:-1;
-  ctx.beginPath();
-  ctx.moveTo(xPx+len,y);
-  ctx.lineTo(xPx+len-dir*8,y-5);
-  ctx.lineTo(xPx+len-dir*8,y+5);
-  ctx.closePath(); ctx.fill();
-}
-
-function drawBall(xPx,rPx,colorA,colorB,sq,vel,label){
-  ctx.save();
-  ctx.translate(xPx,trackY);
-  ctx.beginPath();
-  ctx.ellipse(0,rPx*0.9,rPx*(1+sq*0.6),rPx*0.25,0,0,Math.PI*2);
-  ctx.fillStyle='rgba(0,0,0,.45)'; ctx.fill();
-  ctx.scale(1+sq*0.35,1-sq*0.3);
-  const grad=ctx.createRadialGradient(-rPx*0.3,-rPx*0.3,rPx*0.1,0,0,rPx);
-  grad.addColorStop(0,colorB); grad.addColorStop(1,colorA);
-  ctx.beginPath(); ctx.arc(0,0,rPx,0,Math.PI*2); ctx.fillStyle=grad; ctx.fill();
-  ctx.strokeStyle='rgba(255,255,255,.15)'; ctx.lineWidth=1.5; ctx.stroke();
-  ctx.restore();
-  ctx.fillStyle='#eaf2ff'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
-  ctx.fillText(label,xPx,trackY+4);
-  drawArrow(xPx,trackY-rPx-14,vel,colorA);
-}
-
-function drawTrail(trail,color){
-  for(let i=0;i<trail.length;i++){
-    const a=(i/trail.length)*0.35;
-    ctx.beginPath(); ctx.arc(trail[i],trackY,3,0,Math.PI*2);
-    ctx.fillStyle=color.replace('ALPHA',a.toFixed(2)); ctx.fill();
-  }
-}
-
-function spawnSparks(xPx,n){
-  for(let i=0;i<n;i++){
-    const ang=Math.random()*Math.PI*2, sp=Math.random()*3+1;
-    particles.push({x:xPx,y:trackY,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp-1,life:1});
-  }
-}
-function updateParticles(){
-  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.03;});
-  particles=particles.filter(p=>p.life>0);
-}
-function drawParticles(){
-  particles.forEach(p=>{
-    ctx.beginPath(); ctx.arc(p.x,p.y,2.2,0,Math.PI*2);
-    ctx.fillStyle=`rgba(251,191,36,${p.life})`; ctx.fill();
-  });
-}
-
-function drawScene(){
-  ctx.clearRect(0,0,W,H);
-  drawRuler();
-  drawTrail(trail1,'rgba(56,189,248,ALPHA)');
-  drawTrail(trail2,'rgba(244,114,182,ALPHA)');
-  drawParticles();
-  drawBall(toPx(x1m),r1m*PXPM,'#0284c7','#7dd3fc',squash1,collided?post1:vel1,'m₁');
-  drawBall(toPx(x2m),r2m*PXPM,'#db2777','#f9a8d4',squash2,collided?post2:vel2,'m₂');
-}
-function drawStatic(){ setup(); drawScene(); timeLbl.textContent='t = 0.00 s'; }
-
-function step(){
-  const dt=1/60;
-  t+=dt;
-  trail1.push(toPx(x1m)); if(trail1.length>18) trail1.shift();
-  trail2.push(toPx(x2m)); if(trail2.length>18) trail2.shift();
-
-  if(!collided){
-    x1m+=vel1*dt; x2m+=vel2*dt;
-    if(x1m+r1m>=x2m-r2m){
-      collided=true;
-      const overlap=(x1m+r1m)-(x2m-r2m);
-      x1m-=overlap/2; x2m+=overlap/2;
-      const relSpeed=Math.abs(vel1-vel2);
-      spawnSparks(toPx(x1m+r1m),Math.round(4+relSpeed*2));
-      squash1=Math.min(1,0.3+relSpeed*0.05); squash2=squash1;
-      playThud(relSpeed);
-    }
-  } else {
-    x1m+=post1*dt; x2m+=post2*dt;
-    squash1*=0.85; squash2*=0.85;
-  }
-  updateParticles();
-  drawScene();
-  timeLbl.textContent='t = '+t.toFixed(2)+' s';
-  if(x1m>-1 && x1m<TRACK_M+1 && x2m>-1 && x2m<TRACK_M+1 && t<8){
-    animId=requestAnimationFrame(step);
-  } else { cancelAnimationFrame(animId); animId=null; }
-}
-
-btnRun.addEventListener('click',()=>{ if(animId) cancelAnimationFrame(animId); setup(); step(); });
-btnReset.addEventListener('click',()=>{ if(animId) cancelAnimationFrame(animId); animId=null; drawStatic(); });
-tipoSel.addEventListener('change',()=>{ if(!animId) drawStatic(); });
-
-drawStatic();
-</script>
-
-<script>
-// Sincroniza los selectores de objeto (presets) con los sliders de masa existentes,
-// sin modificar la lógica de física/animación de arriba.
-function wirePreset(presetId, sliderId){
-  const preset=$(presetId), slider=$(sliderId);
-  preset.addEventListener('change',()=>{
-    if(preset.value==='custom') return;
-    slider.value=preset.value;
-    slider.dispatchEvent(new Event('input'));
-  });
-  slider.addEventListener('input',()=>{
-    const match=[...preset.options].some(o=>o.value!=='custom' && parseFloat(o.value)===parseFloat(slider.value));
-    preset.value = match ? slider.value : 'custom';
-  });
-}
-wirePreset('m1preset','m1');
-wirePreset('m2preset','m2');
-</script>
+<script src="controller/script.js"></script>
 </body>
 </html>
