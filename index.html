@@ -33,10 +33,13 @@
                 <div class="scene-wrap" id="sceneWrap">
                     <div class="scene-hint">🖱️ Arrastra para rotar · rueda / pellizca para hacer zoom</div>
                     <div class="scene-time" id="timeLbl">t = 0.00 s</div>
+                    <div class="scene-status" id="status"></div>
                 </div>
                 <div class="btnrow">
                     <button id="btnRun">▶ Simular choque</button>
                     <button id="btnReset">⟲ Reiniciar</button>
+                    <select id="speed" class="speedsel" title="Velocidad de la simulación"><option value="0.25">Cámara lenta 0.25×</option><option value="0.5">0.5×</option><option value="1" selected>Normal 1×</option><option value="2">Rápido 2×</option><option value="4">Muy rápido 4×</option></select>
+                    <label class="chk"><input type="checkbox" id="chkLbl" checked> Datos sobre los cuerpos</label>
                     <button id="btnSound">🔊 Sonido: ON</button>
                 </div>
                 <p class="note">Superficie ideal sin fricción. Cada cuadro de la rejilla equivale a 1 metro. Las chispas
@@ -58,8 +61,9 @@
                             <option value="15">🚲 Bicicleta (15 kg)</option>
                             <option value="custom">✏️ Personalizado…</option>
                         </select>
-                        <div class="finetune"><input type="range" id="m1" min="0.15" max="25" step="0.05"
-                                value="2"><span class="num" id="m1v">2.0</span></div>
+                        <div class="finetune"><input type="range" id="m1" min="0" max="1000" step="1" value="0"><input type="number" class="numin" id="m1n" min="0.1" max="10000" step="any" value="2"><span class="unit">kg</span></div>
+                        <div class="scale"><span>0.1 kg</span><span>escala logarítmica</span><span>10 000 kg</span></div>
+                        <div class="limit-msg" id="lm1"></div>
                     </div>
                     <div class="obj-card p2">
                         <div class="obj-head"><span class="name">Cuerpo 2</span><span class="mass-tag" id="m2tag">3.00
@@ -73,20 +77,28 @@
                             <option value="15">🚲 Bicicleta (15 kg)</option>
                             <option value="custom">✏️ Personalizado…</option>
                         </select>
-                        <div class="finetune"><input type="range" id="m2" min="0.15" max="25" step="0.05"
-                                value="3"><span class="num" id="m2v">3.0</span></div>
+                        <div class="finetune"><input type="range" id="m2" min="0" max="1000" step="1" value="0"><input type="number" class="numin" id="m2n" min="0.1" max="10000" step="any" value="3"><span class="unit">kg</span></div>
+                        <div class="scale"><span>0.1 kg</span><span>escala logarítmica</span><span>10 000 kg</span></div>
+                        <div class="limit-msg" id="lm2"></div>
                     </div>
                 </div>
                 <div class="vel-grid">
                     <div class="vel-card">
-                        <div class="vel-head">Velocidad inicial v₁ <span class="val" id="v1v">4.0 m/s</span></div><input
-                            type="range" id="v1" min="-10" max="10" step="0.1" value="4">
+                        <div class="vel-head">Velocidad inicial v₁ <span class="val" id="v1v">+4.0 m/s</span></div>
+                        <div class="cwrap"><input type="range" class="cslider" id="v1" min="-20" max="20" step="0.1" value="4"></div>
+                        <div class="scale"><span>−20 (←)</span><span>0</span><span>+20 (→)</span></div>
+                        <div class="vel-in"><input type="number" class="numin" id="v1n" min="-20" max="20" step="0.1" value="4"><span class="unit">m/s</span><span class="dir" id="d1"></span></div>
+                        <div class="limit-msg" id="lv1"></div>
                     </div>
                     <div class="vel-card">
                         <div class="vel-head">Velocidad inicial v₂ <span class="val" id="v2v">-2.0 m/s</span></div>
-                        <input type="range" id="v2" min="-10" max="10" step="0.1" value="-2">
+                        <div class="cwrap"><input type="range" class="cslider" id="v2" min="-20" max="20" step="0.1" value="-2"></div>
+                        <div class="scale"><span>−20 (←)</span><span>0</span><span>+20 (→)</span></div>
+                        <div class="vel-in"><input type="number" class="numin" id="v2n" min="-20" max="20" step="0.1" value="-2"><span class="unit">m/s</span><span class="dir" id="d2"></span></div>
+                        <div class="limit-msg" id="lv2"></div>
                     </div>
                 </div>
+                <p class="note">Convención: el signo <b>+</b> indica movimiento hacia la derecha y el signo <b>−</b> hacia la izquierda. El control parte de 0 en el centro.</p>
                 <div class="tiporow">
                     <label>Tipo de choque (coeficiente de restitución e)</label>
                     <select id="tipo">
@@ -102,11 +114,7 @@
         <div class="panel">
             <div class="panel-title"><span class="dot"></span>Resultados</div>
             <div class="results" id="results"></div>
-            <div class="formula">
-                v₁' = [(m₁−e·m₂)v₁ + (1+e)m₂v₂] / (m₁+m₂) &nbsp;|&nbsp;
-                v₂' = [(m₂−e·m₁)v₂ + (1+e)m₁v₁] / (m₁+m₂) &nbsp;|&nbsp;
-                Ec = ½mv² &nbsp;|&nbsp; p = mv
-            </div>
+            <div id="derivation"></div>
         </div>
         <footer>Universidad de Santander · Facultad de Ingeniería</footer>
     </div>
